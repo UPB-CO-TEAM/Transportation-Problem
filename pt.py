@@ -339,3 +339,11 @@ if st.button("🚀 Rezolvă Problema de Transport", type="primary", use_containe
         st.write("**C. Teorema Ecarturilor**")
         st.latex(r"X_{ij}(C_{ij} - u_i - v_j) = 0")
         st.success("Verificată pentru soluția optimă.")
+
+                                                                # AFISARE REZULTAT FINAL
+    st.markdown("---")
+    st.markdown("<h3 style='color: #ff007f; text-align: center;'>📦 REZULTAT FINAL 📦</h3>", unsafe_allow_html=True)
+    
+    afiseaza_tabel_final(X_baza, A_lucru, B_lucru, celule_baza)
+    
+    st.markdown(f"<h2 style='color: #28a745; text-align: center;'>Cost Total Minim: {format_clean(cost_curent)} u.m.</h2>", unsafe_allow_html=True)
