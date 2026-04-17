@@ -14,18 +14,18 @@ st.markdown("""
     .authors-title { color: #ff007f; font-weight: bold; font-style: italic; font-size: 20px; margin-bottom: 8px; }
     .authors-names { color: #ff007f; line-height: 1.6; font-size: 18px; }
     
-    /* animatie personalizata pentru fundite baby pink care zboara in sus */
-    @keyframes floatUp {
-        0% { transform: translateY(10vh) rotate(0deg); opacity: 1; }
-        100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+    /* animatie pentru fundite baby pink care cad de sus (ca o ninsoare) */
+    @keyframes fallDown {
+        0% { top: -10vh; transform: rotate(0deg); opacity: 1; }
+        100% { top: 110vh; transform: rotate(360deg); opacity: 0; }
     }
-    /* containerul ocupa 0px pt a nu deranja inaltimea paginii / sa nu mai avem auto-scroll haotic */
-    .bow-container { position: fixed; top: 0; left: 0; width: 0; height: 0; z-index: 9999; pointer-events: none; overflow: visible; }
     .bow {
-        position: absolute; 
-        bottom: -110vh; 
-        animation-name: floatUp; 
-        animation-timing-function: ease-in; 
+        position: fixed; 
+        z-index: 99999; 
+        pointer-events: none; /* ca sa poti da click prin ele */
+        user-select: none; 
+        animation-name: fallDown; 
+        animation-timing-function: linear; 
         animation-iteration-count: 1; 
         animation-fill-mode: forwards;
         color: #fddde6; 
@@ -34,25 +34,15 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)                                    # design css pt titlu si fundite
 
-def afiseaza_fundite_baby_pink():                               # functie care genereaza 50 de fundite zburatoare 
-    bows_html = "<div class='bow-container'>"
+def afiseaza_fundite_baby_pink():                               # functie care genereaza 50 de fundite zburatoare
+    bows_html = ""
     for _ in range(50):
         left = random.randint(0, 100)
         duration = random.uniform(3.0, 6.0)
         delay = random.uniform(0, 1.5)
         size = random.uniform(1.5, 3.5)
         bows_html += f"<div class='bow' style='left: {left}vw; animation-duration: {duration}s; animation-delay: {delay}s; font-size: {size}rem;'>🎀</div>"
-    bows_html += "</div>"
-    
-    # script javascript ca sa fixam scroll-ul la sectiunea de rezolvare
-    scroll_script = """
-        <script>
-            setTimeout(function() {
-                document.getElementById('start-rezolvare').scrollIntoView({behavior: 'smooth', block: 'start'});
-            }, 100);
-        </script>
-    """
-    st.markdown(bows_html + scroll_script, unsafe_allow_html=True)
+    st.markdown(f"<div>{bows_html}</div>", unsafe_allow_html=True)
 
 def format_clean(val):                                          # curatam numerele de formatul urat np.float64
     if val is None: return "None"
@@ -63,26 +53,19 @@ def format_lista_clean(lista):                                  # formatam vecto
 
 def afiseaza_tabel_complet(X, A, B, baza=None):                 # cream tabelul ca pe tabla: Xij la mijloc, Disponibil in dreapta, Necesar jos
     m, n = len(A), len(B)
-    # construim matricea principala
     df = pd.DataFrame(X, index=[f"A{i+1}" for i in range(m)], columns=[f"B{j+1}" for j in range(n)])
-    
-    # lipim coloana a_i in dreapta
     df['Disponibil (a_i)'] = A                                  
-    # lipim linia b_j dedesubt (inclusiv suma totala la coltul din dreapta jos)
     df.loc['Necesar (b_j)'] = list(B) + [sum(A)]                
     
-    def coloreaza_tabelul(data):                                # functie pt a colora tabelul
+    def coloreaza_tabelul(data):                                # functie pt a colora tabelul rezolvat
         stiler = pd.DataFrame('', index=data.index, columns=data.columns)
-        
-        # 1. coloram cu baby pink doar rutele alese (baza)
         if baza is not None:
             for (i, j) in baza:
                 stiler.iloc[i, j] = 'background-color: #fddde6; font-weight: bold; color: #ff007f;'
                 
-        # 2. coloram linia si coloana de restrictii ca sa fie separate de matricea principala
         stiler.iloc[-1, :] = 'background-color: #ffe6f0; font-weight: bold; color: #ff007f; border-top: 2px solid #ff007f;'
         stiler.iloc[:, -1] = 'background-color: #ffe6f0; font-weight: bold; color: #ff007f; border-left: 2px solid #ff007f;'
-        stiler.iloc[-1, -1] = 'background-color: #ff007f; color: white; font-weight: bold;' # coltul final
+        stiler.iloc[-1, -1] = 'background-color: #ff007f; color: white; font-weight: bold;' 
         return stiler
 
     st.dataframe(df.style.apply(coloreaza_tabelul, axis=None), use_container_width=True)
@@ -214,26 +197,28 @@ B_curs = [25, 35, 18, 22]
 
 for i in range(m_surse):                                        # completam cu valori (fie curs, fie random pt alte dim.)
     for j in range(n_dest):
-        if m_surse == 3 and n_dest == 4:
-            df_input_initial.iloc[i, j] = C_curs[i][j]
-        else:
-            df_input_initial.iloc[i, j] = random.randint(1, 9)
+        if m_surse == 3 and n_dest == 4: df_input_initial.iloc[i, j] = C_curs[i][j]
+        else: df_input_initial.iloc[i, j] = random.randint(1, 9)
             
-    if m_surse == 3 and n_dest == 4:
-        df_input_initial.iloc[i, -1] = A_curs[i]
-    else:
-        df_input_initial.iloc[i, -1] = 20
+    if m_surse == 3 and n_dest == 4: df_input_initial.iloc[i, -1] = A_curs[i]
+    else: df_input_initial.iloc[i, -1] = 20
     
 for j in range(n_dest):
-    if m_surse == 3 and n_dest == 4:
-        df_input_initial.iloc[-1, j] = B_curs[j]
-    else:
-        df_input_initial.iloc[-1, j] = 15
+    if m_surse == 3 and n_dest == 4: df_input_initial.iloc[-1, j] = B_curs[j]
+    else: df_input_initial.iloc[-1, j] = 15
         
-df_input_initial.iloc[-1, -1] = None                            # Coltul din dreapta jos ramane gol (vizual)
+df_input_initial.iloc[-1, -1] = None                            # Coltul din dreapta jos ramane gol
 
-st.info("📌 **Am preîncărcat problema standard de la curs (Cazul Examen). Puteți modifica valorile în tabel.**")
-edited_df = st.data_editor(df_input_initial, use_container_width=True) # afisam matricea combinata
+def coloreaza_input(data):                                      # functie pentru a desparti vizual ai si bj de Cij in input
+    stiler = pd.DataFrame('', index=data.index, columns=data.columns)
+    stiler.iloc[-1, :] = 'background-color: #ffe6f0; font-weight: bold; border-top: 2px solid #ff007f;'
+    stiler.iloc[:, -1] = 'background-color: #ffe6f0; font-weight: bold; border-left: 2px solid #ff007f;'
+    stiler.iloc[-1, -1] = 'background-color: #e0e0e0;'          # gri pt coltul inactiv
+    return stiler
+
+st.write("**Introduceți Costurile Unitare ($C_{ij}$), Oferta și Cererea în tabelul de mai jos:**")
+styled_input = df_input_initial.style.apply(coloreaza_input, axis=None)
+edited_df = st.data_editor(styled_input, use_container_width=True) # afisam matricea combinata frumos delimitata
 
 C_input = edited_df.iloc[:-1, :-1].values.astype(float)         # extragem Costurile din mijloc
 A_input = edited_df.iloc[:-1, -1].values.astype(float).tolist() # extragem Oferta de pe coloana dreapta
@@ -241,8 +226,7 @@ B_input = edited_df.iloc[-1, :-1].values.astype(float).tolist() # extragem Cerer
 
 if st.button("🚀 Rezolvă Problema de Transport", type="primary", use_container_width=True):
     
-    afiseaza_fundite_baby_pink()                                # declansam funditele si scroll-ul elegant 🎀
-    st.markdown("<div id='start-rezolvare'></div>", unsafe_allow_html=True) # Ancoră pentru focus
+    afiseaza_fundite_baby_pink()                                # funditele cad linistite de sus fara sa mai mute ecranul 🎀
     st.divider()
     
                                                                 # PAS 1: VERIFICARE ECHILIBRU
