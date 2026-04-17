@@ -51,7 +51,7 @@ def format_clean(val):                                          # curatam numere
 def format_lista_clean(lista):                                  # formatam vectorii u si v frumos in string
     return "[" + ", ".join([str(format_clean(x)) for x in lista]) + "]"
 
-def afiseaza_tabel_final(X, A, B, baza=None):                   # afiseaza tabelul final curatat cu tematica verde
+def afiseaza_tabel_final(X, A, B, baza=None):                   # afiseaza tabelul final
     m, n = len(A), len(B)
     df = pd.DataFrame(X, index=[f"A{i+1}" for i in range(m)], columns=[f"B{j+1}" for j in range(n)])
     df['Disponibil (a_i)'] = A                                  
@@ -62,18 +62,21 @@ def afiseaza_tabel_final(X, A, B, baza=None):                   # afiseaza tabel
     for col in df.columns:
         df[col] = df[col].apply(lambda x: int(x) if pd.notna(x) and isinstance(x, (int, float)) and float(x).is_integer() else x)
     
-    def coloreaza_verde(data):                                  # functie de design verde final
+    def coloreaza_mixt(data):                                   # functia de design finala
         stiler = pd.DataFrame('', index=data.index, columns=data.columns)
+        
+        # 1. Pastram ROZ pentru celulele de baza din interiorul matricei
         if baza is not None:
             for (i, j) in baza:
-                stiler.iloc[i, j] = 'background-color: #d4edda; font-weight: bold; color: #155724;'
+                stiler.iloc[i, j] = 'background-color: #fddde6; font-weight: bold; color: #ff007f;'
                 
-        stiler.iloc[-1, :] = 'background-color: #f8f9fa; font-weight: bold; color: #155724; border-top: 2px solid #28a745;'
-        stiler.iloc[:, -1] = 'background-color: #f8f9fa; font-weight: bold; color: #155724; border-left: 2px solid #28a745;'
+        # 2. Facem VERDE doar marginile (linia b_j si coloana a_i)
+        stiler.iloc[-1, :] = 'background-color: #d4edda; font-weight: bold; color: #155724; border-top: 2px solid #28a745;'
+        stiler.iloc[:, -1] = 'background-color: #d4edda; font-weight: bold; color: #155724; border-left: 2px solid #28a745;'
         stiler.iloc[-1, -1] = 'background-color: #28a745; color: white; font-weight: bold;'
         return stiler
 
-    st.dataframe(df.style.apply(coloreaza_verde, axis=None), use_container_width=True)
+    st.dataframe(df.style.apply(coloreaza_mixt, axis=None), use_container_width=True)
 
                                                                 # ALGORITMI PROBLEMA TRANSPORTURILOR
 
@@ -276,7 +279,7 @@ if st.button("🚀 Rezolvă Problema de Transport", type="primary", use_containe
                     intrata = (i, j)
                     este_optim = False
                     
-        if este_optim:                                          # Reparam bug-ul LaTeX aici folosind un string formatat corect
+        if este_optim:                                          # String brut formatat corect pt LaTeX
             st.success("✨ Optim atins la iterația " + str(iteratie-1) + r": $\Delta_{ij} \ge 0, \forall (i,j) \notin Baza$.")
             break
             
@@ -336,11 +339,3 @@ if st.button("🚀 Rezolvă Problema de Transport", type="primary", use_containe
         st.write("**C. Teorema Ecarturilor**")
         st.latex(r"X_{ij}(C_{ij} - u_i - v_j) = 0")
         st.success("Verificată pentru soluția optimă.")
-
-                                                                # AFISARE REZULTAT FINAL
-    st.markdown("---")
-    st.markdown("<h3 style='color: #28a745; text-align: center;'>📦 REZULTAT FINAL 📦</h3>", unsafe_allow_html=True)
-    
-    afiseaza_tabel_final(X_baza, A_lucru, B_lucru, celule_baza)
-    
-    st.markdown(f"<h2 style='color: #28a745; text-align: center;'>Cost Total Minim: {format_clean(cost_curent)} u.m.</h2>", unsafe_allow_html=True)
