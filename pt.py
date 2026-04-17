@@ -14,10 +14,10 @@ st.markdown("""
     .authors-title { color: #ff007f; font-weight: bold; font-style: italic; font-size: 20px; margin-bottom: 8px; }
     .authors-names { color: #ff007f; line-height: 1.6; font-size: 18px; }
     
-    /* animatie pentru fundite baby pink care cad de sus (ca o ninsoare) */
+    /* animatie pentru fundite baby pink care cad de sus */
     @keyframes fallDown {
-        0% { top: -10vh; transform: rotate(0deg); opacity: 1; }
-        100% { top: 110vh; transform: rotate(360deg); opacity: 0; }
+        0% { top: -100px; transform: rotate(0deg); opacity: 1; }
+        100% { top: 100vh; transform: rotate(360deg); opacity: 0; }
     }
     .bow {
         position: fixed; 
@@ -35,14 +35,16 @@ st.markdown("""
 """, unsafe_allow_html=True)                                    # design css pt titlu si fundite
 
 def afiseaza_fundite_baby_pink():                               # functie care genereaza 50 de fundite zburatoare
-    bows_html = ""
+    # Am impachetat totul intr-un div de 0x0 pixeli ca sa blocam complet orice fel de derulare (scroll) a ecranului
+    bows_html = "<div style='position: fixed; top: 0; left: 0; width: 0px; height: 0px; pointer-events: none; z-index: 99999; overflow: visible;'>"
     for _ in range(50):
         left = random.randint(0, 100)
         duration = random.uniform(3.0, 6.0)
         delay = random.uniform(0, 1.5)
         size = random.uniform(1.5, 3.5)
         bows_html += f"<div class='bow' style='left: {left}vw; animation-duration: {duration}s; animation-delay: {delay}s; font-size: {size}rem;'>🎀</div>"
-    st.markdown(f"<div>{bows_html}</div>", unsafe_allow_html=True)
+    bows_html += "</div>"
+    st.markdown(bows_html, unsafe_allow_html=True)
 
 def format_clean(val):                                          # curatam numerele de formatul urat np.float64
     if pd.isna(val) or val is None: return "None"
@@ -346,4 +348,5 @@ if st.button("🚀 Rezolvă Problema de Transport", type="primary", use_containe
     
     afiseaza_tabel_final(X_baza, A_lucru, B_lucru, celule_baza)
     
-    st.markdown(f"<h2 style='color: #28a745; text-align: center;'>Cost Total Minim: {format_clean(cost_curent)} u.m.</h2>", unsafe_allow_html=True)
+    # Textul pentru cost minim a fost schimbat din verde in roz pastelat specific (#ff007f)
+    st.markdown(f"<h2 style='color: #ff007f; text-align: center;'>Cost Total Minim: {format_clean(cost_curent)} u.m.</h2>", unsafe_allow_html=True)
